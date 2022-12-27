@@ -1,4 +1,4 @@
-import {Collection, Db} from "mongodb";
+import {Collection, Db, Filter, ObjectId, UpdateFilter} from "mongodb";
 
 require("dotenv").config()
 
@@ -12,6 +12,7 @@ let database: Db;
 export default class Base {
 
     collectionName: string = ""
+    _id?: ObjectId
     static readonly collectionName: string;
 
     constructor(collectionName: string) {
@@ -35,11 +36,11 @@ export default class Base {
     }
 
 
-    static async getCollection() {
+    static async getCollection(collectionName: string) {
         return new Promise<Collection>(async (resolve, reject) => {
             try {
-                let db = await this.getDatabase();
-                resolve(db.collection(this.collectionName))
+                let db = await Base.getDatabase();
+                resolve(db.collection(collectionName))
             } catch (ex) {
                 reject("Database connection fail")
             }
@@ -50,7 +51,7 @@ export default class Base {
     static find() {
         return new Promise(async (resolve, reject) => {
             try {
-                let docs = await (await this.getCollection()).find().toArray();
+                let docs = await (await Base.getCollection(this.collectionName)).find().toArray();
                 resolve(docs)
 
             } catch (ex) {
@@ -60,17 +61,44 @@ export default class Base {
     }
 
     save<T>() {
-        return new Promise<T>(async (resolve, reject) => {
+        return new Promise<T | null>(async (resolve, reject) => {
             try {
                 const {collectionName, ...other} = this
-                let doc = await (await this.getCollection()).insertOne(other)
-                if(doc.insertedId){
-                    resolve({
-                        ...other,
-                        _id: doc.insertedId
-                    })
-                } else{
+                let doc = await (await Base.getCollection(this.collectionName)).insertOne(other)
+                if (doc.insertedId) {
+                    other._id = doc.insertedId
+                    resolve(other as T)
+                } else {
                     resolve(null)
+                }
+
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    }
+
+
+    static updateOne<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>) {
+        return new Promise<T>(async (resolve, reject) => {
+            try {
+                let doc = await (await Base.getCollection(this.collectionName)).updateOne(filter,update)
+                resolve(doc)
+
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    }
+
+static deleteOne(filter: Filter<Document>) {
+        return new Promise<boolean>(async (resolve, reject) => {
+            try {
+                let doc = await (await Base.getCollection(this.collectionName)).deleteOne(filter)
+                if(doc.deletedCount) {
+                    resolve(true)
+                } else {
+                    resolve(false)
                 }
 
             } catch (ex) {

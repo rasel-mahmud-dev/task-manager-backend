@@ -1,6 +1,6 @@
 import express, {NextFunction, Response, Router} from "express"
 import Task from "../models/Task";
-
+import {ObjectId} from "mongodb";
 
 const router: Router = express.Router()
 
@@ -42,6 +42,40 @@ router.post("/add", async function (request: Request, response: Response, next: 
             response.status(201).send(newTask)
         } else {
             next("Task adding fail")
+        }
+
+    } catch (ex) {
+        next(ex)
+    }
+
+})
+
+
+router.patch("/toggle-favorite/:taskId", async function (request: Request, response: Response, next: NextFunction) {
+
+    try {
+        await Task.updateOne(
+            {_id: new ObjectId(request.params.taskId)}, {
+                $set: {
+                    isFavorite: true
+                }
+            })
+
+
+    } catch (ex) {
+        console.log(ex)
+        next(ex)
+    }
+
+})
+
+
+router.delete("/:taskId", async function (request: Request, response: Response, next: NextFunction) {
+
+    try {
+        let result = await Task.deleteOne({_id: new ObjectId(request.params.taskId)})
+        if (result) {
+            response.status(201).send("deleted")
         }
 
     } catch (ex) {

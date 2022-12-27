@@ -1,8 +1,9 @@
 import Base from "./Base";
+import {ObjectId} from "mongodb";
 
 
 export interface TaskType {
-    _id?: string
+    _id?: ObjectId
     title: string,
     image: string,
     description: string
@@ -17,7 +18,7 @@ export interface TaskType {
 
 class Task extends Base implements TaskType{
 
-    _id?: string
+    _id?: ObjectId
     title: string = ""
     image: string = ""
     description: string = ""
