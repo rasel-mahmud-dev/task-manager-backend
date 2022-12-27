@@ -12,7 +12,7 @@ let database: Db;
 export default class Base {
 
     collectionName: string = ""
-    private static readonly collectionName: string;
+    static readonly collectionName: string;
 
     constructor(collectionName: string) {
         this.collectionName = collectionName
@@ -52,6 +52,26 @@ export default class Base {
             try {
                 let docs = await (await this.getCollection()).find().toArray();
                 resolve(docs)
+
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    }
+
+    save<T>() {
+        return new Promise<T>(async (resolve, reject) => {
+            try {
+                const {collectionName, ...other} = this
+                let doc = await (await this.getCollection()).insertOne(other)
+                if(doc.insertedId){
+                    resolve({
+                        ...other,
+                        _id: doc.insertedId
+                    })
+                } else{
+                    resolve(null)
+                }
 
             } catch (ex) {
                 reject(ex)
