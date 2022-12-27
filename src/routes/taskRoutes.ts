@@ -53,30 +53,63 @@ router.post("/add", async function (request: Request, response: Response, next: 
 
 router.patch("/toggle-favorite/:taskId", async function (request: Request, response: Response, next: NextFunction) {
 
+    const {isFavorite} = request.body
+
     try {
+
         await Task.updateOne(
             {_id: new ObjectId(request.params.taskId)}, {
                 $set: {
-                    isFavorite: true
+                    isFavorite: !isFavorite
                 }
             })
 
+        response.status(201).send(!isFavorite)
 
     } catch (ex) {
-        console.log(ex)
+        next(ex)
+    }
+
+})
+
+router.patch("/toggle-completed/:taskId", async function (request: Request, response: Response, next: NextFunction) {
+
+    const {isCompleted} = request.body
+
+    try {
+
+        await Task.updateOne(
+            {_id: new ObjectId(request.params.taskId)}, {
+                $set: {
+                    isCompleted: !isCompleted
+                }
+            })
+
+        response.status(201).send(!isCompleted)
+
+
+    } catch (ex) {
         next(ex)
     }
 
 })
 
 
-router.delete("/:taskId", async function (request: Request, response: Response, next: NextFunction) {
+router.patch("/delete/:taskId", async function (request: Request, response: Response, next: NextFunction) {
+
+    const {isDeleted} = request.body
 
     try {
-        let result = await Task.deleteOne({_id: new ObjectId(request.params.taskId)})
-        if (result) {
-            response.status(201).send("deleted")
-        }
+
+        await Task.updateOne(
+            {_id: new ObjectId(request.params.taskId)}, {
+                $set: {
+                    isDeleted: !isDeleted
+                }
+            })
+
+        response.status(201).send(!isDeleted)
+
 
     } catch (ex) {
         next(ex)

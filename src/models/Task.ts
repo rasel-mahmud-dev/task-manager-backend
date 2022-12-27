@@ -10,6 +10,7 @@ export interface TaskType {
     isFavorite: boolean
     date?: Date
     isCompleted?: boolean
+    isDeleted: boolean
     comment?: string
     createdAt?: Date
     updatedAt?: Date
@@ -22,6 +23,7 @@ class Task extends Base implements TaskType{
     title: string = ""
     image: string = ""
     description: string = ""
+    isDeleted?: boolean = false
     isCompleted?: boolean = false
     isFavorite: boolean = false
     comment?: string
