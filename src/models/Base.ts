@@ -48,6 +48,19 @@ export default class Base {
     }
 
 
+    static findOne(filter: Filter<Document>) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let docs = await (await Base.getCollection(this.collectionName)).findOne(filter)
+                resolve(docs)
+
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    }
+
+
     static find() {
         return new Promise(async (resolve, reject) => {
             try {

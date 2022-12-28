@@ -10,7 +10,7 @@ export interface TaskType {
     isFavorite: boolean
     date?: Date
     isCompleted?: boolean
-    isDeleted: boolean
+    isDeleted?: boolean
     comment?: string
     createdAt?: Date
     updatedAt?: Date
