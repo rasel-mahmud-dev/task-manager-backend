@@ -2,7 +2,7 @@ import * as express from "express"
 import User from "../models/User";
 import {createToken} from "../jwt";
 import {NextFunction, Request} from "express";
-import bcrypt from  "bcryptjs"
+import bcrypt from "bcryptjs"
 
 const router = express.Router()
 
@@ -13,7 +13,7 @@ router.post("/generate-token", async function (request: Request, response: Respo
         avatar,
         email,
         password,
-        isEntry =  false
+        isEntry = false
     } = request.body
 
     try {
@@ -41,13 +41,9 @@ router.post("/generate-token", async function (request: Request, response: Respo
 
         } else {
 
-
         }
 
-        if(!isEntry) {
-            token = createToken(email)
-        }
-
+        token = createToken(email)
         return response.status(201).json({user, token})
 
     } catch (ex) {
@@ -56,6 +52,36 @@ router.post("/generate-token", async function (request: Request, response: Respo
 })
 
 
+router.post("/login", async function (request: Request, response: Response, next: NextFunction) {
+    const {
+        email,
+        password
+    } = request.body
+
+    try {
+
+        let user = await User.findOne({email: email})
+        if (!user) {
+            return response.status(404).send("User not found")
+        }
+
+
+        if (!user.password) {
+            return response.status(404).send("Your password not set yet, please login with Google")
+        }
+
+        let isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return response.status(404).send("Your password wrong")
+        }
+        let token = createToken(email)
+        return response.status(201).json({user, token})
+
+    } catch (ex) {
+
+        next(ex)
+    }
+})
 
 
 export default router
