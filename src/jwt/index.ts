@@ -10,16 +10,16 @@ export const createToken = (email: string, expiresIn?: string) => {
 
 
 export const parseToken = (token: string) => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<[{email: string} | undefined, string | undefined]>(async (resolve, _) => {
         try {
             if (token) {
                 let d = await jwt.verify(token, process.env.JWT_SECRET)
-                resolve(d)
+                resolve([d, undefined])
             } else {
-                reject(new Error("Token not found"))
+                resolve([undefined, "Token not found"])
             }
         } catch (ex) {
-            reject(ex)
+            resolve([undefined, ex.message])
         }
     })
 }

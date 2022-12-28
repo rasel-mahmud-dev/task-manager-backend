@@ -1,26 +1,23 @@
 import * as express from "express"
 import User from "../models/User";
-import {createToken} from "../jwt";
+import {createToken, parseToken} from "../jwt";
 import {NextFunction, Request} from "express";
 import bcrypt from "bcryptjs"
 
 const router = express.Router()
 
 
-router.post("/generate-token", async function (request: Request, response: Response, next: NextFunction) {
+router.post("/registration", async function (request: Request, response: Response, next: NextFunction) {
     const {
         username,
         avatar,
         email,
         password,
-        isEntry = false
     } = request.body
 
     try {
 
         let user = await User.findOne({email: email})
-        let token = ""
-
 
         if (!user) {
             // store new user
@@ -39,10 +36,52 @@ router.post("/generate-token", async function (request: Request, response: Respo
                 return response.status(403).send("User creation fail, Please try again")
             }
 
-        } else {
-
+            let token = createToken(email)
+            return response.status(201).json({user, token})
         }
 
+       response.status(401).json({ message: "Your already registered, Please login"})
+
+    } catch (ex) {
+        next(ex)
+    }
+})
+
+
+router.post("/generate-token", async function (request: Request, response: Response, next: NextFunction) {
+    const {
+        username,
+        avatar,
+        email,
+    } = request.body
+
+    try {
+
+        let user = await User.findOne({email: email})
+        let token = ""
+
+
+        if (!user) {
+            // store new user if not register
+            let newUser = new User({
+                username,
+                email,
+                avatar,
+                password: ""
+            })
+
+            user = await newUser.save();
+            if (!user) {
+                return response.status(403).send("User creation fail, Please try again")
+            }
+        }
+
+        // check current token valid or not
+        token = request.headers.token
+        let [tokenData, error]  = await parseToken(token)
+        if(!error && tokenData) {
+            return response.status(200).json({user})
+        }
         token = createToken(email)
         return response.status(201).json({user, token})
 
@@ -62,7 +101,7 @@ router.post("/login", async function (request: Request, response: Response, next
 
         let user = await User.findOne({email: email})
         if (!user) {
-            return response.status(404).send("User not found")
+            return response.status(404).send("Your are not registered")
         }
 
 
@@ -76,6 +115,29 @@ router.post("/login", async function (request: Request, response: Response, next
         }
         let token = createToken(email)
         return response.status(201).json({user, token})
+
+    } catch (ex) {
+
+        next(ex)
+    }
+})
+
+router.get("/fetch-current-auth-user", async function (request: Request, response: Response, next: NextFunction) {
+    try {
+
+        let token = request.headers.token || ""
+        if (!token) {
+            return response.status(404).send("Please login first")
+        }
+
+        const [tokenData, error] = await parseToken(token)
+        if(error){
+            return response.status(404).send("Please login first")
+        }
+
+        let user =  await User.findOne({email: tokenData.email})
+        user.password = ""
+        return response.status(200).json(user)
 
     } catch (ex) {
 
