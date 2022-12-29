@@ -1,4 +1,4 @@
-import {Collection, Db, Filter, ObjectId, UpdateFilter} from "mongodb";
+import {Collection, Db, Filter, ObjectId, UpdateFilter, UpdateResult} from "mongodb";
 
 require("dotenv").config()
 
@@ -61,10 +61,10 @@ export default class Base {
     }
 
 
-    static find() {
+    static find(filter: Filter<Document>) {
         return new Promise(async (resolve, reject) => {
             try {
-                let docs = await (await Base.getCollection(this.collectionName)).find().toArray();
+                let docs = await (await Base.getCollection(this.collectionName)).find(filter).toArray();
                 resolve(docs)
 
             } catch (ex) {
@@ -92,7 +92,7 @@ export default class Base {
     }
 
 
-    static updateOne<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>) {
+    static updateOne<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>): UpdateResult {
         return new Promise<T>(async (resolve, reject) => {
             try {
                 let doc = await (await Base.getCollection(this.collectionName)).updateOne(filter, update)
@@ -105,10 +105,10 @@ export default class Base {
     }
 
 
-    static insertMany<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>) {
+    static insertMany<T>(insert: UpdateFilter<Document> | Partial<Document>) {
         return new Promise<T>(async (resolve, reject) => {
             try {
-                let doc = await (await Base.getCollection(this.collectionName)).insertMany(filter, update)
+                let doc = await (await Base.getCollection(this.collectionName)).insertMany(insert, {ordered: true})
                 resolve(doc)
 
             } catch (ex) {
