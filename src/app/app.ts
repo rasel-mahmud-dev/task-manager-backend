@@ -12,7 +12,21 @@ const app = express()
 app.use(express.json())
 
 
-app.use(cors())
+const allowedOrigin = [process.env.FRONTEND]
+
+const corsOptions: any = {
+    credentials: true,
+    origin: (origin: any[], cb: any)=>{
+        if(allowedOrigin.indexOf(origin as any) !== -1){
+            cb(null, true)
+        } else{
+            cb(null, false)
+            // cb(new Error("You are Blocked"))
+        }
+    }
+}
+
+app.use(cors(corsOptions))
 
 app.use("/api/v1/tasks", taskRoutes)
 app.use("/api/v1/auth", authRoutes)
