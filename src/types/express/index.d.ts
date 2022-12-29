@@ -6,7 +6,6 @@ declare global {
     namespace Express {
         export interface Request {
             authUser: {
-                _id: string,
                 email: string
             }
         }

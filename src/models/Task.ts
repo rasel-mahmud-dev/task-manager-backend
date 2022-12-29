@@ -5,6 +5,7 @@ import {ObjectId} from "mongodb";
 export interface TaskType {
     _id?: ObjectId
     title: string,
+    email: string,
     image: string,
     description: string
     isFavorite: boolean
@@ -20,6 +21,7 @@ export interface TaskType {
 class Task extends Base implements TaskType{
 
     _id?: ObjectId
+    email: string = ""
     title: string = ""
     image: string = ""
     description: string = ""
@@ -36,6 +38,7 @@ class Task extends Base implements TaskType{
     constructor(data: TaskType) {
         super(Task.collectionName)
         this.title = data.title
+        this.email = data.email
         this.description = data.description
         this.image = data.image
         this.isFavorite = data.isFavorite

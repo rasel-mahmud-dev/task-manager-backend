@@ -95,7 +95,7 @@ export default class Base {
     static updateOne<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>) {
         return new Promise<T>(async (resolve, reject) => {
             try {
-                let doc = await (await Base.getCollection(this.collectionName)).updateOne(filter,update)
+                let doc = await (await Base.getCollection(this.collectionName)).updateOne(filter, update)
                 resolve(doc)
 
             } catch (ex) {
@@ -104,11 +104,24 @@ export default class Base {
         })
     }
 
-static deleteOne(filter: Filter<Document>) {
+
+    static insertMany<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>) {
+        return new Promise<T>(async (resolve, reject) => {
+            try {
+                let doc = await (await Base.getCollection(this.collectionName)).insertMany(filter, update)
+                resolve(doc)
+
+            } catch (ex) {
+                reject(ex)
+            }
+        })
+    }
+
+    static deleteOne(filter: Filter<Document>) {
         return new Promise<boolean>(async (resolve, reject) => {
             try {
                 let doc = await (await Base.getCollection(this.collectionName)).deleteOne(filter)
-                if(doc.deletedCount) {
+                if (doc.deletedCount) {
                     resolve(true)
                 } else {
                     resolve(false)
