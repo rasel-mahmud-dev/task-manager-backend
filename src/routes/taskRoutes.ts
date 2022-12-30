@@ -1,11 +1,11 @@
 import * as express from "express"
-import {NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 
 import Task, {TaskType} from "../models/Task";
 import {ObjectId} from "mongodb";
 import auth from "../middleware/auth"
 
-const router : any  = express.Router()
+const router: any = express.Router()
 
 
 router.get("/", auth, async function (req: Request, res: Response, next: NextFunction) {
@@ -88,7 +88,7 @@ router.post("/update", auth, async function (req: Request, res: Response, next: 
         })
 
 
-        if(!doc.matchedCount){
+        if (!doc.matchedCount) {
             return res.status(404).send("Task Not fount")
         }
 
@@ -112,7 +112,7 @@ router.patch("/toggle-favorite/:taskId", auth, async function (req: Request, res
     try {
 
         await Task.updateOne(
-            { email: req.authUser.email, _id: new ObjectId(req.params.taskId)}, {
+            {email: req.authUser.email, _id: new ObjectId(req.params.taskId)}, {
                 $set: {
                     isFavorite: !isFavorite
                 }
@@ -149,7 +149,7 @@ router.patch("/toggle-completed/:taskId", auth, async function (req: Request, re
 })
 
 
-router.patch("/delete/:taskId",auth, async function (req: Request, res: Response, next: NextFunction) {
+router.patch("/delete/:taskId", auth, async function (req: Request, res: Response, next: NextFunction) {
 
     const {isDeleted} = req.body
 
@@ -172,7 +172,6 @@ router.patch("/delete/:taskId",auth, async function (req: Request, res: Response
 })
 
 
-
 router.post("/sync", auth, async function (req: Request, res: Response, next: NextFunction) {
 
     const {tasks = []} = req.body
@@ -184,13 +183,14 @@ router.post("/sync", auth, async function (req: Request, res: Response, next: Ne
         let unique: TaskType[] = []
 
         for (const task1 of tasks) {
-             let index  = dbTasks.findIndex((task: Task)=> (task._id as unknown as string).toString() === task1._id.toString())
-            if(index === -1) {
+            let index = dbTasks.findIndex((task: Task) => (task._id as unknown as string).toString() === task1._id.toString())
+            if (index === -1) {
                 if (task1._id.length !== 24) {
                     let item = {
                         ...task1,
                         email: req.authUser.email,
-                        _id: new ObjectId()
+                        _id: new ObjectId(),
+                        createdAt: new Date(task1.createdAt || new Date())
                     }
                     dbTasks.push(item)
                     unique.push(item)
@@ -201,12 +201,13 @@ router.post("/sync", auth, async function (req: Request, res: Response, next: Ne
             }
         }
 
-        // skip silently
-        Task.insertMany(unique).then((data)=>{
-        }).catch((e)=> {
-            res.status(201).send(dbTasks)
+        // skip duplicate error silently
+        Task.insertMany(unique).then((data) => {
+        }).catch((e) => {
+        }).finally(async () => {
+            let allTasks = await Task.find<Task[]>({email: req.authUser.email}) || []
+            res.status(201).send(allTasks)
         })
-
     } catch (ex) {
         next(ex)
     }

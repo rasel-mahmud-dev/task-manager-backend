@@ -1,14 +1,14 @@
 {
-  "name": "mobile_mela_node_api",
+  "name": "task-manager-server",
   "version": "1.0.0",
-  "description": "Node.js on netlify serverless function",
+  "description": "",
   "author": {
     "name": "Rasel Mahmud",
     "email": "rasel.mahmud.dev@gmail.com"
   },
-  "main": "dist/local-server.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/local-server.ts",
+    "dev": "set NODE_ENV=development&ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "copy": "node cp.js",
     "start": "node index.js"

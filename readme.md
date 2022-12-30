@@ -1,12 +1,11 @@
 # Task management (Backend)
 
+## A simple dynamic task management app
 
-### Repo Server : https://github.com/rasel-mahmud-dev/watch-reseller-backend
-### Repo client : https://github.com/rasel-mahmud-dev/watch-reseller-frontend
-<br />
+### Github Repo Client : https://github.com/rasel-mahmud-dev/task-manager-frontend
+### Github Repo Backend: https://github.com/rasel-mahmud-dev/task-manager-backend
 
-### Server Live: https://watch-reseller-rosy.vercel.app
-### Client Live: https://watch-reseller.web.app
+### Live site: http://task-manager3.web.app
 
 
 
@@ -14,6 +13,7 @@
 - Typescript
 - Expressjs
 - cors
+- bcryptjs
 - dotenv
 - jwt(jsonwebtoken)
 - mongodb
@@ -30,4 +30,12 @@
 - Mongodb (Native)
 
 
-### Endpoint
+
+## Preview of my tasks
+![](public/images/sdfsdfsd.jpg)
+
+## Preview of Homepage
+![](public/images/sdfsf.jpg)
+
+## Preview Dark
+![](public/images/sdasd.jpg)

@@ -12,7 +12,7 @@ const app = express()
 app.use(express.json())
 
 
-const allowedOrigin = [process.env.FRONTEND as string]
+const allowedOrigin = ["http://localhost:5173", process.env.FRONTEND as string]
 
 const corsOptions: any = {
     credentials: true,
