@@ -1,4 +1,4 @@
-import express, {response} from "express"
+import express, {NextFunction, Request, Response} from "express"
 import cors from "cors"
 
 require("dotenv").config({})
@@ -12,12 +12,12 @@ const app = express()
 app.use(express.json())
 
 
-const allowedOrigin = [process.env.FRONTEND]
+const allowedOrigin = [process.env.FRONTEND as string]
 
 const corsOptions: any = {
     credentials: true,
     origin: (origin: any[], cb: any)=>{
-        if(allowedOrigin.indexOf(origin as any) !== -1){
+        if(allowedOrigin.indexOf(origin as unknown as string) !== -1){
             cb(null, true)
         } else{
             cb(null, false)
@@ -31,10 +31,13 @@ app.use(cors(corsOptions))
 app.use("/api/v1/tasks", taskRoutes)
 app.use("/api/v1/auth", authRoutes)
 
+app.get("/", (req: Request, res: Response)=>{
+    res.send("hello")
+})
 
 
 // error handler middleware
-app.use((err, _request, response, _next)=>{
+app.use((err: any, _request: Request, response: Response, _next: NextFunction)=>{
     let message = "Internal error"
     let status = 500
     if(typeof err === "object"){
@@ -53,3 +56,4 @@ app.use((err, _request, response, _next)=>{
 
 
 export default app
+module.exports =  app

@@ -1,19 +1,23 @@
+
+import { NextFunction, Request, Response } from "express";
 import * as express from "express"
-import User from "../models/User";
+
+import User, {UserType} from "../models/User";
+
 import {createToken, parseToken} from "../jwt";
-import {NextFunction, Request} from "express";
 import bcrypt from "bcryptjs"
 
-const router = express.Router()
+
+const router  = express.Router()
 
 
-router.post("/registration", async function (request: Request, response: Response, next: NextFunction) {
+router.post("/registration", async (req: Request, res: Response, next: NextFunction)=> {
     const {
         username,
         avatar,
         email,
         password,
-    } = request.body
+    } = req.body
 
     try {
 
@@ -33,14 +37,14 @@ router.post("/registration", async function (request: Request, response: Respons
 
             user = await newUser.save();
             if (!user) {
-                return response.status(403).send("User creation fail, Please try again")
+                return res.status(403).send("User creation fail, Please try again")
             }
 
             let token = createToken(email)
-            return response.status(201).json({user, token})
+            return res.status(201).json({user, token})
         }
 
-       response.status(401).json({ message: "Your already registered, Please login"})
+        res.status(401).json({ message: "Your already registered, Please login"})
 
     } catch (ex) {
         next(ex)
@@ -48,12 +52,12 @@ router.post("/registration", async function (request: Request, response: Respons
 })
 
 
-router.post("/generate-token", async function (request: Request, response: Response, next: NextFunction) {
+router.post("/generate-token", async function (req: Request, res: Response, next: NextFunction) {
     const {
         username,
         avatar,
         email,
-    } = request.body
+    } = req.body
 
     try {
 
@@ -72,18 +76,18 @@ router.post("/generate-token", async function (request: Request, response: Respo
 
             user = await newUser.save();
             if (!user) {
-                return response.status(403).send("User creation fail, Please try again")
+                return res.status(403).send("User creation fail, Please try again")
             }
         }
 
         // check current token valid or not
-        token = request.headers.token
+        token = req.headers.token as string
         let [tokenData, error]  = await parseToken(token)
         if(!error && tokenData) {
-            return response.status(200).json({user})
+            return res.status(200).json({user})
         }
         token = createToken(email)
-        return response.status(201).json({user, token})
+        return res.status(201).json({user, token})
 
     } catch (ex) {
         next(ex)
@@ -91,30 +95,30 @@ router.post("/generate-token", async function (request: Request, response: Respo
 })
 
 
-router.post("/login", async function (request: Request, response: Response, next: NextFunction) {
+router.post("/login", async (req: Request, res: Response, next: NextFunction)=> {
     const {
         email,
         password
-    } = request.body
+    } = req.body
 
     try {
 
-        let user = await User.findOne({email: email})
+        let user = await User.findOne<UserType>({email: email})
         if (!user) {
-            return response.status(404).send("Your are not registered")
+            return res.status(404).send("Your are not registered")
         }
 
 
         if (!user.password) {
-            return response.status(404).send("Your password not set yet, please login with Google")
+            return res.status(404).send("Your password not set yet, please login with Google")
         }
 
         let isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return response.status(404).send("Your password wrong")
+            return res.status(404).send("Your password wrong")
         }
         let token = createToken(email)
-        return response.status(201).json({user, token})
+        return res.status(201).json({user, token})
 
     } catch (ex) {
 
@@ -122,22 +126,24 @@ router.post("/login", async function (request: Request, response: Response, next
     }
 })
 
-router.get("/fetch-current-auth-user", async function (request: Request, response: Response, next: NextFunction) {
+
+router.get("/fetch-current-auth-user", async function (req: Request, res: Response, next: NextFunction) {
     try {
 
-        let token = request.headers.token || ""
+        let token = req.headers.token as string || ""
         if (!token) {
-            return response.status(404).send("Please login first")
+            return res.status(404).send("Please login first")
         }
 
         const [tokenData, error] = await parseToken(token)
         if(error){
-            return response.status(404).send("Please login first")
+            return res.status(404).send("Please login first")
         }
 
-        let user =  await User.findOne({email: tokenData.email})
+        let user =  await User.findOne<UserType>({email: tokenData?.email})
         user.password = ""
-        return response.status(200).json(user)
+
+        return res.status(200).json(user)
 
     } catch (ex) {
 

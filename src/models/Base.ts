@@ -1,10 +1,10 @@
-import {Collection, Db, Filter, ObjectId, UpdateFilter, UpdateResult} from "mongodb";
 
 require("dotenv").config()
 
-const MongoClient = require("mongodb").MongoClient;
+import {Collection, Db, ObjectId, MongoClient, Filter, Document, UpdateFilter, UpdateResult, OptionalId} from "mongodb";
 
-const client = new MongoClient(process.env.MONGODB_URL);
+
+const client = new MongoClient(process.env.MONGODB_URL as string);
 
 let database: Db;
 
@@ -48,11 +48,11 @@ export default class Base {
     }
 
 
-    static findOne(filter: Filter<Document>) {
-        return new Promise(async (resolve, reject) => {
+    static findOne<T>(filter: Filter<Document>) {
+        return new Promise<T>(async (resolve, reject) => {
             try {
-                let docs = await (await Base.getCollection(this.collectionName)).findOne(filter)
-                resolve(docs)
+                let docs = (await Base.getCollection(this.collectionName)).findOne(filter)
+                resolve(docs as T)
 
             } catch (ex) {
                 reject(ex)
@@ -61,11 +61,11 @@ export default class Base {
     }
 
 
-    static find(filter: Filter<Document>) {
-        return new Promise(async (resolve, reject) => {
+    static find<T>(filter: Filter<Document>) {
+        return new Promise<T | null>(async (resolve, reject) => {
             try {
-                let docs = await (await Base.getCollection(this.collectionName)).find(filter).toArray();
-                resolve(docs)
+                let docs = (await Base.getCollection(this.collectionName)).find(filter).toArray();
+                resolve(docs as T)
 
             } catch (ex) {
                 reject(ex)
@@ -92,8 +92,8 @@ export default class Base {
     }
 
 
-    static updateOne<T>(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>): UpdateResult {
-        return new Promise<T>(async (resolve, reject) => {
+    static updateOne(filter: Filter<Document>, update: UpdateFilter<Document> | Partial<Document>){
+        return new Promise<UpdateResult>(async (resolve, reject) => {
             try {
                 let doc = await (await Base.getCollection(this.collectionName)).updateOne(filter, update)
                 resolve(doc)
@@ -105,11 +105,11 @@ export default class Base {
     }
 
 
-    static insertMany<T>(insert: UpdateFilter<Document> | Partial<Document>) {
+    static insertMany<T>(insert: any) {
         return new Promise<T>(async (resolve, reject) => {
             try {
-                let doc = await (await Base.getCollection(this.collectionName)).insertMany(insert, {ordered: true})
-                resolve(doc)
+                let doc = (await Base.getCollection(this.collectionName)).insertMany(insert, {ordered: false})
+                resolve(doc as T)
 
             } catch (ex) {
                 reject(ex)

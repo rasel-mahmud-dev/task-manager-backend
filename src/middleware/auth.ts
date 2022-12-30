@@ -4,7 +4,7 @@ import {parseToken} from "../jwt";
 export default async function (request: Request, response: Response, next: NextFunction){
 
     try{
-        let token = request.headers.token
+        let token = request.headers.token as string
 
         if(!token){
             return response.status(401).send("You are unauthorized")

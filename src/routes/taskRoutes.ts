@@ -1,32 +1,34 @@
-import express, {NextFunction, Response, Router} from "express"
-import Task from "../models/Task";
+import * as express from "express"
+import {NextFunction, Request, Response } from "express";
+
+import Task, {TaskType} from "../models/Task";
 import {ObjectId} from "mongodb";
 import auth from "../middleware/auth"
 
-const router: Router = express.Router()
+const router : any  = express.Router()
 
 
-router.get("/", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.get("/", auth, async function (req: Request, res: Response, next: NextFunction) {
     try {
-        const tasks = await Task.find({email: request.authUser.email});
-        response.send(tasks)
+        const tasks = await Task.find({email: req.authUser.email});
+        res.send(tasks)
     } catch (ex) {
         next(ex)
     }
 })
 
 
-router.get("/:id", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.get("/:id", auth, async function (req: Request, res: Response, next: NextFunction) {
     try {
-        const task = await Task.findOne({_id: new ObjectId(request.params.id), email: request.authUser.email});
-        response.status(200).send(task)
+        const task = await Task.findOne({_id: new ObjectId(req.params.id), email: req.authUser.email});
+        res.status(200).send(task)
     } catch (ex) {
         next(ex)
     }
 })
 
 
-router.post("/add", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.post("/add", auth, async function (req: Request, res: Response, next: NextFunction) {
 
     const {
         title,
@@ -35,12 +37,12 @@ router.post("/add", auth, async function (request: Request, response: Response, 
         isFavorite,
         date,
         comment
-    } = request.body
+    } = req.body as any
 
     try {
-        let newTask = await new Task({
+        let newTask: Task | null = await new Task({
             title,
-            email: request.authUser.email,
+            email: req.authUser.email,
             image,
             description,
             isFavorite,
@@ -51,7 +53,7 @@ router.post("/add", auth, async function (request: Request, response: Response, 
         newTask = await newTask.save<Task>()
 
         if (newTask) {
-            response.status(201).send(newTask)
+            res.status(201).send(newTask)
         } else {
             next("Task adding fail")
         }
@@ -63,19 +65,19 @@ router.post("/add", auth, async function (request: Request, response: Response, 
 })
 
 
-router.post("/update", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.post("/update", auth, async function (req: Request, res: Response, next: NextFunction) {
 
     const {
         title,
         image,
         description,
         _id
-    } = request.body
+    } = req.body
 
     try {
 
         let doc = await Task.updateOne({
-            email: request.authUser.email,
+            email: req.authUser.email,
             _id: new ObjectId(_id)
         }, {
             $set: {
@@ -87,11 +89,11 @@ router.post("/update", auth, async function (request: Request, response: Respons
 
 
         if(!doc.matchedCount){
-            return response.status(404).send("Task Not fount")
+            return res.status(404).send("Task Not fount")
         }
 
         if (doc.modifiedCount) {
-            response.status(201).send("Task updated")
+            res.status(201).send("Task updated")
         } else {
             next("Task update fail")
         }
@@ -103,20 +105,20 @@ router.post("/update", auth, async function (request: Request, response: Respons
 })
 
 
-router.patch("/toggle-favorite/:taskId", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.patch("/toggle-favorite/:taskId", auth, async function (req: Request, res: Response, next: NextFunction) {
 
-    const {isFavorite} = request.body
+    const {isFavorite} = req.body
 
     try {
 
         await Task.updateOne(
-            { email: request.authUser.email, _id: new ObjectId(request.params.taskId)}, {
+            { email: req.authUser.email, _id: new ObjectId(req.params.taskId)}, {
                 $set: {
                     isFavorite: !isFavorite
                 }
             })
 
-        response.status(201).send(!isFavorite)
+        res.status(201).send(!isFavorite)
 
     } catch (ex) {
         next(ex)
@@ -124,20 +126,20 @@ router.patch("/toggle-favorite/:taskId", auth, async function (request: Request,
 
 })
 
-router.patch("/toggle-completed/:taskId", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.patch("/toggle-completed/:taskId", auth, async function (req: Request, res: Response, next: NextFunction) {
 
-    const {isCompleted} = request.body
+    const {isCompleted} = req.body
 
     try {
 
         await Task.updateOne(
-            {email: request.authUser.email, _id: new ObjectId(request.params.taskId)}, {
+            {email: req.authUser.email, _id: new ObjectId(req.params.taskId)}, {
                 $set: {
                     isCompleted: !isCompleted
                 }
             })
 
-        response.status(201).send(!isCompleted)
+        res.status(201).send(!isCompleted)
 
 
     } catch (ex) {
@@ -147,20 +149,20 @@ router.patch("/toggle-completed/:taskId", auth, async function (request: Request
 })
 
 
-router.patch("/delete/:taskId",auth, async function (request: Request, response: Response, next: NextFunction) {
+router.patch("/delete/:taskId",auth, async function (req: Request, res: Response, next: NextFunction) {
 
-    const {isDeleted} = request.body
+    const {isDeleted} = req.body
 
     try {
 
         await Task.updateOne(
-            {email: request.authUser.email, _id: new ObjectId(request.params.taskId)}, {
+            {email: req.authUser.email, _id: new ObjectId(req.params.taskId)}, {
                 $set: {
                     isDeleted: !isDeleted
                 }
             })
 
-        response.status(201).send(!isDeleted)
+        res.status(201).send(!isDeleted)
 
 
     } catch (ex) {
@@ -171,29 +173,29 @@ router.patch("/delete/:taskId",auth, async function (request: Request, response:
 
 
 
-router.post("/sync", auth, async function (request: Request, response: Response, next: NextFunction) {
+router.post("/sync", auth, async function (req: Request, res: Response, next: NextFunction) {
 
-    const {tasks = []} = request.body
+    const {tasks = []} = req.body
 
     try {
 
 
-        let dbTasks = await Task.find({email: request.authUser.email}) || []
-        let unique = []
+        let dbTasks = await Task.find<Task[]>({email: req.authUser.email}) || []
+        let unique: TaskType[] = []
 
         for (const task1 of tasks) {
-             let index  = dbTasks.findIndex(task=>task._id.toString() === task1._id.toString())
+             let index  = dbTasks.findIndex((task: Task)=> (task._id as unknown as string).toString() === task1._id.toString())
             if(index === -1) {
                 if (task1._id.length !== 24) {
                     let item = {
                         ...task1,
-                        email: request.authUser.email,
+                        email: req.authUser.email,
                         _id: new ObjectId()
                     }
                     dbTasks.push(item)
                     unique.push(item)
                 } else {
-                    unique.push(item)
+                    unique.push(task1)
                     dbTasks.push(task1)
                 }
             }
@@ -202,7 +204,7 @@ router.post("/sync", auth, async function (request: Request, response: Response,
         // skip silently
         Task.insertMany(unique).then((data)=>{
         }).catch((e)=> {
-            response.status(201).send(dbTasks)
+            res.status(201).send(dbTasks)
         })
 
     } catch (ex) {
